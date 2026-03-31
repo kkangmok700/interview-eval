@@ -1,0 +1,137 @@
+/* 면접 평가 시스템 스타일 */
+
+body {
+    background-color: #f8f9fa;
+    font-family: 'Malgun Gothic', 'NanumGothic', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.navbar-brand {
+    font-size: 1.3rem;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.rounded-top-0 {
+    border-radius: 0 0 10px 10px !important;
+}
+
+.table th {
+    white-space: nowrap;
+}
+
+.btn {
+    border-radius: 6px;
+}
+
+.badge {
+    border-radius: 6px;
+}
+
+/* 평가 등급 선택 라디오 버튼 */
+.score-radio-wrapper {
+    flex: 1;
+    min-width: 90px;
+    max-width: 140px;
+}
+
+.score-btn {
+    width: 100%;
+    padding: 12px 8px;
+    border-radius: 10px !important;
+    text-align: center;
+    transition: all 0.2s;
+    border-width: 2px;
+}
+
+.score-btn .score-value {
+    font-size: 1.4rem;
+}
+
+.score-btn .score-label {
+    font-size: 0.8rem;
+    margin-top: 2px;
+}
+
+.btn-check:checked + .score-btn {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+}
+
+.score-btn:hover {
+    transform: scale(1.03);
+}
+
+/* 평가 섹션 구분선 */
+.eval-section {
+    padding: 20px;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    background: white;
+}
+
+.eval-header {
+    border-radius: 10px 10px 0 0;
+}
+
+/* 대시보드 카드 */
+.card.bg-primary, .card.bg-success, .card.bg-info {
+    transition: transform 0.2s;
+}
+
+.card.bg-primary:hover, .card.bg-success:hover, .card.bg-info:hover {
+    transform: translateY(-5px);
+}
+
+/* 결과 테이블 */
+.table-success {
+    background-color: #d1e7dd !important;
+}
+
+/* 서명 이미지 */
+.signature-img {
+    max-width: 200px;
+    max-height: 100px;
+    object-fit: contain;
+}
+
+/* 인쇄 스타일 */
+@media print {
+    .navbar, .breadcrumb, .btn, footer, .alert {
+        display: none !important;
+    }
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+    h2 {
+        font-size: 1.5rem;
+    }
+    .score-radio-wrapper {
+        min-width: 60px;
+    }
+    .score-btn .score-value {
+        font-size: 1.1rem;
+    }
+}

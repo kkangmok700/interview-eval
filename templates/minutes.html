@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}회의록 - {{ interview['title'] }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('interviews') }}">면접 관리</a></li>
+        <li class="breadcrumb-item active">{{ interview['title'] }} - 회의록</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-file-text"></i> 면접 회의록</h2>
+    {% if all_signed %}
+    <a href="{{ url_for('minutes_pdf', interview_id=interview['id']) }}" class="btn btn-danger">
+        <i class="bi bi-file-pdf"></i> PDF 다운로드
+    </a>
+    {% endif %}
+</div>
+
+{% if not all_signed %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle"></i>
+    모든 관계자(단장 + 심사위원)의 전자서명이 완료되면 회의록이 확정되고 PDF를 다운로드할 수 있습니다.
+</div>
+{% else %}
+<div class="alert alert-success">
+    <i class="bi bi-check-circle"></i>
+    모든 서명이 완료되었습니다. PDF를 다운로드할 수 있습니다.
+</div>
+{% endif %}
+
+<!-- 회의록 미리보기 -->
+<div class="card shadow mb-4">
+    <div class="card-body p-4">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold">면접 심사 회의록</h3>
+            <hr>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <table class="table table-bordered">
+                    <tr><th class="table-light" style="width:30%">면접명</th><td>{{ interview['title'] }}</td></tr>
+                    <tr><th class="table-light">면접일자</th><td>{{ interview['date'] }}</td></tr>
+                    <tr><th class="table-light">채용인원</th><td>{{ interview['hire_count'] }}명</td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <table class="table table-bordered">
+                    <tr><th class="table-light" style="width:30%">심사위원장</th><td>{{ admin['name'] if admin else '-' }}</td></tr>
+                    {% for judge in judges %}
+                    <tr><th class="table-light">심사위원{{ loop.index }}</th><td>{{ judge['name'] }}</td></tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+        <h5 class="fw-bold mb-2">평가항목</h5>
+        <p class="small text-muted mb-3">
+            {% for c in criteria %}
+            {{ c['id'] }}. {{ c['name'] }}({{ c['max_score'] }}점){% if not loop.last %}, {% endif %}
+            {% endfor %}
+            = <strong>총 100점 만점</strong>
+        </p>
+
+        <h5 class="fw-bold mb-3">평가 결과표</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>순위</th>
+                        <th>지원자</th>
+                        <th>지원분야</th>
+                        {% for judge in judges %}
+                        <th>{{ judge['name'] }}</th>
+                        {% endfor %}
+                        <th>최종평균</th>
+                        <th>결과</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in results %}
+                    <tr class="{% if r['result'] == '합격' %}table-success{% endif %}">
+                        <td>{{ loop.index }}</td>
+                        <td class="fw-bold">{{ r['applicant']['name'] }}</td>
+                        <td>{{ r['applicant']['field'] }}</td>
+                        {% for judge in judges %}
+                        <td>
+                            {% if judge['id'] in r['judge_scores'] %}
+                            {{ r['judge_scores'][judge['id']]['total'] }}
+                            {% else %}-{% endif %}
+                        </td>
+                        {% endfor %}
+                        <td class="fw-bold">{{ r['total_average'] }}</td>
+                        <td>
+                            {% if r['result'] == '합격' %}
+                            <strong class="text-success">합격</strong>
+                            {% else %}{{ r['result'] }}{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="mt-3"><strong>합격 기준:</strong> 총점(100점 만점) 평균 70점 이상이며, 채용인원 내 상위 득점자</p>
+
+        <!-- 서명란 -->
+        <h5 class="fw-bold mt-5 mb-3">서명란</h5>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header bg-primary text-white text-center">
+                        <strong>심사위원장 ({{ admin['name'] if admin else '-' }})</strong>
+                    </div>
+                    <div class="card-body text-center" style="min-height: 120px;">
+                        {% if admin and admin['id'] in signatures %}
+                        <img src="{{ url_for('uploaded_signature', filename=signatures[admin['id']]['image_path']) }}"
+                             alt="서명" class="img-fluid" style="max-height: 100px;">
+                        <br><small class="text-muted">{{ signatures[admin['id']]['signed_at'] }}</small>
+                        {% else %}
+                        <span class="text-muted">미서명</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% for judge in judges %}
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header bg-info text-white text-center">
+                        <strong>심사위원{{ loop.index }} ({{ judge['name'] }})</strong>
+                    </div>
+                    <div class="card-body text-center" style="min-height: 120px;">
+                        {% if judge['id'] in signatures %}
+                        <img src="{{ url_for('uploaded_signature', filename=signatures[judge['id']]['image_path']) }}"
+                             alt="서명" class="img-fluid" style="max-height: 100px;">
+                        <br><small class="text-muted">{{ signatures[judge['id']]['signed_at'] }}</small>
+                        {% else %}
+                        <span class="text-muted">미서명</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- 서명 업로드 -->
+<div class="card shadow mb-4">
+    <div class="card-header bg-warning">
+        <h5 class="mb-0"><i class="bi bi-pen"></i> 내 전자서명 업로드</h5>
+    </div>
+    <div class="card-body">
+        {% if session['user_id'] in required_signers %}
+        <form method="POST" enctype="multipart/form-data" class="row align-items-end">
+            <div class="col-md-8">
+                <label for="signature" class="form-label">서명 이미지 파일 (PNG, JPG)</label>
+                <input type="file" class="form-control" id="signature" name="signature"
+                       accept=".png,.jpg,.jpeg" required>
+                <div class="form-text">투명 배경의 서명 이미지를 권장합니다.</div>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-warning w-100">
+                    <i class="bi bi-upload"></i> 서명 업로드
+                </button>
+            </div>
+        </form>
+        {% if session['user_id'] in signatures %}
+        <div class="mt-3 text-success">
+            <i class="bi bi-check-circle"></i> 이미 서명을 등록하셨습니다. 새로 업로드하면 기존 서명이 교체됩니다.
+        </div>
+        {% endif %}
+        {% else %}
+        <p class="text-muted mb-0">이 면접의 서명 대상자가 아닙니다.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.db
+uploads/applicants/*
+uploads/signatures/*
+!uploads/applicants/.gitkeep
+!uploads/signatures/.gitkeep
+.env
+*.egg-info/
+dist/
+build/

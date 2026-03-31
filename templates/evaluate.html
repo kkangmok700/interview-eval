@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block title %}평가 - {{ applicant['name'] }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('interviews') }}">면접 관리</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('evaluate_list', interview_id=interview['id']) }}">{{ interview['title'] }}</a></li>
+        <li class="breadcrumb-item active">{{ applicant['name'] }} 평가</li>
+    </ol>
+</nav>
+
+<!-- 헤더 -->
+<div class="eval-header bg-primary text-white p-3 rounded-top">
+    <div class="d-flex align-items-center">
+        <a href="{{ url_for('evaluate_list', interview_id=interview['id']) }}" class="text-white me-3">
+            <i class="bi bi-arrow-left fs-4"></i>
+        </a>
+        <div>
+            <h4 class="mb-0">{{ interview['title'] }}</h4>
+            <small>평가위원: {{ session.get('name') }}</small>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mb-4 rounded-top-0">
+    <div class="card-body p-4">
+
+        <!-- 면접자 기본 정보 -->
+        <h5 class="fw-bold mb-3 text-primary border-bottom pb-2">면접자 기본 정보</h5>
+        <div class="row mb-4">
+            <div class="col-md-3 mb-2">
+                <label class="form-label text-muted small">면접자 이름 *</label>
+                <div class="form-control-plaintext fw-bold border rounded px-3 py-2 bg-light">
+                    {{ applicant['name'] }}
+                </div>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label text-muted small">면접일시</label>
+                <div class="form-control-plaintext border rounded px-3 py-2 bg-light">
+                    {{ interview['date'] }}
+                </div>
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label text-muted small">나이</label>
+                <div class="form-control-plaintext border rounded px-3 py-2 bg-light">
+                    {{ applicant['age'] if applicant['age'] else '-' }}
+                </div>
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label text-muted small">평가자 이름 *</label>
+                <div class="form-control-plaintext fw-bold border rounded px-3 py-2 bg-light">
+                    {{ session.get('name') }}
+                </div>
+            </div>
+        </div>
+
+        {% if applicant['file_path'] %}
+        <div class="mb-4">
+            <a href="{{ url_for('uploaded_file', filename=applicant['file_path']) }}"
+               target="_blank" class="btn btn-outline-primary">
+                <i class="bi bi-file-earmark"></i> 지원자 서류 보기
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- 평가 폼 -->
+        <form method="POST" id="evalForm">
+            {% for c in criteria %}
+            <div class="eval-section mb-4">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="badge bg-primary rounded-circle me-2 fs-6">{{ c['id'] }}</span>
+                    <h5 class="fw-bold mb-0">{{ c['name'] }}</h5>
+                    <span class="badge bg-secondary ms-2">{{ c['max_score'] }}점 만점</span>
+                </div>
+
+                <!-- 세부 평가기준 -->
+                <ul class="list-unstyled text-muted small ms-4 mb-3">
+                    {% for q in c['questions'] %}
+                    <li class="mb-1"><i class="bi bi-dot"></i> {{ q }}</li>
+                    {% endfor %}
+                </ul>
+
+                <!-- 등급 선택 라디오 버튼 -->
+                <div class="d-flex flex-wrap gap-2 ms-4">
+                    {% for idx in range(c['scores']|length) %}
+                    <div class="score-radio-wrapper">
+                        <input type="radio" class="btn-check score-radio"
+                               name="score{{ c['id'] }}" id="score{{ c['id'] }}_{{ idx }}"
+                               value="{{ c['scores'][idx] }}"
+                               data-criterion="{{ c['id'] }}"
+                               {% if my_eval and my_eval['score' ~ c['id']] == c['scores'][idx] %}checked{% endif %}
+                               required>
+                        <label class="btn btn-outline-primary score-btn" for="score{{ c['id'] }}_{{ idx }}">
+                            <div class="score-value fw-bold">{{ c['scores'][idx] }}</div>
+                            <div class="score-label small">{{ c['labels'][idx] }}</div>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="text-end mt-1">
+                    <small class="text-muted">
+                        {{ c['labels'][-1] }}: {{ c['scores'][-1] }}점 /
+                        {% for idx in range(c['labels']|length - 2, 0, -1) %}
+                        {{ c['labels'][idx] }}: {{ c['scores'][idx] }}점 /
+                        {% endfor %}
+                        {{ c['labels'][0] }}: {{ c['scores'][0] }}점
+                    </small>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- 합계 -->
+            <div class="bg-light border rounded p-3 mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>합계</strong>
+                        <span class="text-muted small ms-2">모든 항목을 선택하면 총점이 자동 산출됩니다</span>
+                    </div>
+                    <div class="fs-3">
+                        <strong class="text-primary" id="totalScore">
+                            {{ my_eval['total'] if my_eval else 0 }}
+                        </strong>
+                        <span class="text-muted fs-5"> / 100점</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 종합 의견 판정 -->
+            <h5 class="fw-bold mb-3 text-primary border-bottom pb-2">종합 의견 판정</h5>
+            <ul class="list-unstyled text-muted small mb-3">
+                <li><i class="bi bi-check-circle text-success"></i> <strong>합격(통과)</strong>: 통과 점수 및 교육적인 가치 실현</li>
+                <li><i class="bi bi-dash-circle text-warning"></i> <strong>보류</strong>: 현재 직접적인 평균 점수가 70점이상 조건의 문턱</li>
+                <li><i class="bi bi-x-circle text-danger"></i> <strong>불합격(탈락)</strong>: 해당직원이 부적합 되는 항목 - 세부항목(7건) 중 부적합 항목, 채용경력(7건) 은 부적합 될 때는 (2건이상), 대상 자체의 태도로서 부적합되는 항목(1건)의 내용적</li>
+            </ul>
+            <div class="d-flex gap-3 mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="judgment" id="j_pass" value="pass"
+                           {% if my_eval and my_eval['judgment'] == 'pass' %}checked{% endif %}>
+                    <label class="form-check-label fw-bold text-success" for="j_pass">합격</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="judgment" id="j_hold" value="hold"
+                           {% if my_eval and my_eval['judgment'] == 'hold' %}checked{% endif %}>
+                    <label class="form-check-label fw-bold text-warning" for="j_hold">보류</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="judgment" id="j_fail" value="fail"
+                           {% if my_eval and my_eval['judgment'] == 'fail' %}checked{% endif %}>
+                    <label class="form-check-label fw-bold text-danger" for="j_fail">불합격</label>
+                </div>
+            </div>
+
+            <!-- 평가 의견 -->
+            <h5 class="fw-bold mb-3 text-primary border-bottom pb-2">평가 의견 (세줄평)</h5>
+            <textarea class="form-control mb-4" name="comment" rows="4"
+                      placeholder="이 면접자에 대한 종합 의견을 자유롭게 작성하세요...">{{ my_eval['comment'] if my_eval else '' }}</textarea>
+
+            <!-- 버튼 -->
+            <div class="d-flex justify-content-end gap-2">
+                <button type="submit" name="submit_type" value="draft" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-save"></i> 임시 저장
+                </button>
+                <button type="submit" name="submit_type" value="submit" class="btn btn-primary btn-lg"
+                        onclick="return confirm('최종 제출하시겠습니까? 제출 후에도 수정할 수 있습니다.')">
+                    <i class="bi bi-check-lg"></i> 최종 제출
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 총점 자동 계산
+document.querySelectorAll('.score-radio').forEach(radio => {
+    radio.addEventListener('change', updateTotal);
+});
+
+function updateTotal() {
+    let total = 0;
+    for (let i = 1; i <= 5; i++) {
+        const checked = document.querySelector(`input[name="score${i}"]:checked`);
+        if (checked) {
+            total += parseInt(checked.value);
+        }
+    }
+    const el = document.getElementById('totalScore');
+    el.textContent = total;
+    if (total >= 70) {
+        el.className = 'text-success';
+    } else {
+        el.className = 'text-danger';
+    }
+}
+
+// 초기 로드시 계산
+updateTotal();
+</script>
+{% endblock %}

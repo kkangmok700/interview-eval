@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>면접 심사 회의록 - {{ interview['title'] }}</title>
+    <style>
+        @page { size: A4; margin: 2cm; }
+        body {
+            font-family: 'Malgun Gothic', 'NanumGothic', sans-serif;
+            font-size: 11pt; line-height: 1.6; color: #333;
+        }
+        h1 {
+            text-align: center; font-size: 22pt; margin-bottom: 30px;
+            border-bottom: 3px double #333; padding-bottom: 15px;
+        }
+        .info-table, .result-table, .signature-table {
+            width: 100%; border-collapse: collapse; margin-bottom: 20px;
+        }
+        .info-table th, .info-table td {
+            border: 1px solid #999; padding: 8px 12px; text-align: left;
+        }
+        .info-table th { background-color: #f0f0f0; width: 25%; font-weight: bold; }
+        .result-table th, .result-table td {
+            border: 1px solid #999; padding: 6px 10px; text-align: center;
+        }
+        .result-table th { background-color: #2c3e50; color: white; font-weight: bold; }
+        .result-table .pass { background-color: #d4edda; font-weight: bold; }
+        .signature-table td {
+            border: 1px solid #999; padding: 10px; text-align: center;
+            width: 25%; vertical-align: top;
+        }
+        .signature-table .sig-title { background-color: #f0f0f0; font-weight: bold; padding: 8px; }
+        .signature-table img { max-height: 80px; max-width: 150px; }
+        .note { margin-top: 20px; font-size: 10pt; color: #666; }
+        .criteria-info { font-size: 9pt; color: #666; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <h1>면접 심사 회의록</h1>
+
+    <table class="info-table">
+        <tr><th>면접명</th><td colspan="3">{{ interview['title'] }}</td></tr>
+        <tr>
+            <th>면접일자</th><td>{{ interview['date'] }}</td>
+            <th>채용인원</th><td>{{ interview['hire_count'] }}명</td>
+        </tr>
+        <tr>
+            <th>심사위원장</th><td>{{ admin['name'] if admin else '-' }}</td>
+            <th>심사위원</th><td>{{ judges|map(attribute='name')|join(', ') }}</td>
+        </tr>
+    </table>
+
+    <h3>평가 결과</h3>
+    <p class="criteria-info">
+        <strong>평가항목:</strong>
+        {% for c in criteria %}
+        {{ c['id'] }}. {{ c['name'] }}({{ c['max_score'] }}점){% if not loop.last %}, {% endif %}
+        {% endfor %}
+        = 총 100점 만점
+    </p>
+    <p><strong>합격기준:</strong> 총점(100점 만점) 평균 70점 이상, 채용인원 내 상위 득점자</p>
+
+    <table class="result-table">
+        <thead>
+            <tr>
+                <th>순위</th><th>지원자</th><th>지원분야</th>
+                {% for judge in judges %}<th>{{ judge['name'] }}</th>{% endfor %}
+                <th>최종평균</th><th>결과</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in results %}
+            <tr class="{% if r['result'] == '합격' %}pass{% endif %}">
+                <td>{{ loop.index }}</td>
+                <td><strong>{{ r['applicant']['name'] }}</strong></td>
+                <td>{{ r['applicant']['field'] }}</td>
+                {% for judge in judges %}
+                <td>
+                    {% if judge['id'] in r['judge_scores'] %}
+                    {{ r['judge_scores'][judge['id']]['total'] }}
+                    {% else %}-{% endif %}
+                </td>
+                {% endfor %}
+                <td><strong>{{ r['total_average'] }}</strong></td>
+                <td><strong>{{ r['result'] }}</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="signature-section" style="margin-top: 40px; page-break-inside: avoid;">
+        <h3>서명란</h3>
+        <table class="signature-table">
+            <tr>
+                <td class="sig-title">심사위원장</td>
+                {% for judge in judges %}<td class="sig-title">심사위원{{ loop.index }}</td>{% endfor %}
+            </tr>
+            <tr>
+                <td class="sig-title">{{ admin['name'] if admin else '-' }}</td>
+                {% for judge in judges %}<td class="sig-title">{{ judge['name'] }}</td>{% endfor %}
+            </tr>
+            <tr>
+                <td style="height: 100px;">
+                    {% if admin and admin['id'] in signatures %}
+                    <img src="file:///{{ upload_path }}/{{ signatures[admin['id']]['image_path'] }}" alt="서명">
+                    {% endif %}
+                </td>
+                {% for judge in judges %}
+                <td style="height: 100px;">
+                    {% if judge['id'] in signatures %}
+                    <img src="file:///{{ upload_path }}/{{ signatures[judge['id']]['image_path'] }}" alt="서명">
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+        </table>
+    </div>
+
+    <div class="note">
+        <p>본 회의록은 면접 심사 결과를 기록한 공식 문서입니다.</p>
+        <p>작성일: {{ interview['date'] }}</p>
+    </div>
+</body>
+</html>

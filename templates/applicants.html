@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}지원자 관리 - {{ interview['title'] }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('interviews') }}">면접 관리</a></li>
+        <li class="breadcrumb-item active">{{ interview['title'] }} - 지원자 관리</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <!-- 지원자 등록 폼 -->
+    <div class="col-md-5">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-person-plus"></i> 지원자 등록</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="name" class="form-label fw-bold">이름 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name"
+                               placeholder="지원자 이름" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="field" class="form-label fw-bold">지원 분야 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="field" name="field"
+                               placeholder="예: 연구원, 행정, 기술지원" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="age" class="form-label fw-bold">나이</label>
+                        <input type="number" class="form-control" id="age" name="age"
+                               placeholder="나이" min="18" max="70">
+                    </div>
+                    <div class="mb-3">
+                        <label for="file" class="form-label fw-bold">서류 파일</label>
+                        <input type="file" class="form-control" id="file" name="file"
+                               accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.hwp">
+                        <div class="form-text">PDF, 이미지, 워드, 한글 파일 지원 (최대 16MB)</div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-plus-lg"></i> 지원자 등록
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 지원자 목록 -->
+    <div class="col-md-7">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-people"></i> 등록된 지원자 ({{ applicants|length }}명)</h5>
+            </div>
+            <div class="card-body">
+                {% if applicants %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>이름</th>
+                                <th>지원분야</th>
+                                <th>나이</th>
+                                <th>서류</th>
+                                <th>삭제</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for applicant in applicants %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td class="fw-bold">{{ applicant['name'] }}</td>
+                                <td>{{ applicant['field'] }}</td>
+                                <td>{{ applicant['age'] if applicant['age'] else '-' }}</td>
+                                <td>
+                                    {% if applicant['file_path'] %}
+                                    <a href="{{ url_for('uploaded_file', filename=applicant['file_path']) }}"
+                                       target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-file-earmark"></i> 보기
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">없음</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('delete_applicant', applicant_id=applicant['id']) }}"
+                                          onsubmit="return confirm('정말 삭제하시겠습니까?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-person-x display-4"></i>
+                    <p class="mt-2">등록된 지원자가 없습니다.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
