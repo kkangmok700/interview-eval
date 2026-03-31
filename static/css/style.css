@@ -1,38 +1,69 @@
 /* 면접 평가 시스템 스타일 */
 
 body {
-    background-color: #f8f9fa;
+    background-color: #f5f7fa;
     font-family: 'Malgun Gothic', 'NanumGothic', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #333;
+}
+
+/* 메인 네비게이션 */
+.main-navbar {
+    background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #1a3a5c 100%);
+    padding: 16px 0;
 }
 
 .navbar-brand {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
+    letter-spacing: -0.5px;
 }
 
+/* 메뉴 카드 */
+.menu-card {
+    border: 1px solid #e8ecf1;
+    border-radius: 12px;
+    transition: all 0.25s ease;
+    cursor: pointer;
+    background: white;
+}
+
+.menu-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+    border-color: #c5cfe0;
+}
+
+.menu-icon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* 일반 카드 */
 .card {
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     transition: transform 0.2s;
 }
 
-.card:hover {
-    transform: translateY(-2px);
-}
-
 .card-header {
-    border-radius: 10px 10px 0 0 !important;
+    border-radius: 12px 12px 0 0 !important;
 }
 
 .rounded-top-0 {
-    border-radius: 0 0 10px 10px !important;
+    border-radius: 0 0 12px 12px !important;
 }
 
+/* 테이블 */
 .table th {
     white-space: nowrap;
 }
 
+/* 버튼 */
 .btn {
-    border-radius: 6px;
+    border-radius: 8px;
 }
 
 .badge {
@@ -49,7 +80,7 @@ body {
 .score-btn {
     width: 100%;
     padding: 12px 8px;
-    border-radius: 10px !important;
+    border-radius: 12px !important;
     text-align: center;
     transition: all 0.2s;
     border-width: 2px;
@@ -65,41 +96,51 @@ body {
 }
 
 .btn-check:checked + .score-btn {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+    background-color: #1a237e;
+    border-color: #1a237e;
     color: white;
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+    box-shadow: 0 4px 12px rgba(26, 35, 126, 0.4);
 }
 
 .score-btn:hover {
     transform: scale(1.03);
 }
 
-/* 평가 섹션 구분선 */
+/* 평가 섹션 */
 .eval-section {
     padding: 20px;
-    border: 1px solid #e9ecef;
-    border-radius: 10px;
+    border: 1px solid #e8ecf1;
+    border-radius: 12px;
     background: white;
 }
 
 .eval-header {
-    border-radius: 10px 10px 0 0;
+    background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    border-radius: 12px 12px 0 0;
 }
 
-/* 대시보드 카드 */
-.card.bg-primary, .card.bg-success, .card.bg-info {
-    transition: transform 0.2s;
+/* 대시보드 통계 카드 */
+.card.bg-primary {
+    background: linear-gradient(135deg, #1a237e, #283593) !important;
 }
 
-.card.bg-primary:hover, .card.bg-success:hover, .card.bg-info:hover {
-    transform: translateY(-5px);
+.card.bg-success {
+    background: linear-gradient(135deg, #2e7d32, #388e3c) !important;
+}
+
+.card.bg-info {
+    background: linear-gradient(135deg, #0277bd, #0288d1) !important;
 }
 
 /* 결과 테이블 */
 .table-success {
     background-color: #d1e7dd !important;
+}
+
+/* 합격 기준 안내 */
+.bg-light {
+    background-color: #eef2f7 !important;
 }
 
 /* 서명 이미지 */
@@ -133,5 +174,12 @@ body {
     }
     .score-btn .score-value {
         font-size: 1.1rem;
+    }
+    .menu-icon {
+        width: 44px;
+        height: 44px;
+    }
+    .main-navbar {
+        padding: 12px 0;
     }
 }
