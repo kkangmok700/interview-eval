@@ -10,8 +10,13 @@ from werkzeug.utils import secure_filename
 from database import get_db, init_db
 
 app = Flask(__name__)
-app.secret_key = 'interview-eval-secret-key-2024'
+app.secret_key = os.environ.get('SECRET_KEY', 'interview-eval-secret-key-2024')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
+
+# 배포 환경 초기화
+os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads', 'applicants'), exist_ok=True)
+os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads', 'signatures'), exist_ok=True)
+init_db()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_APPLICANTS = os.path.join(BASE_DIR, 'uploads', 'applicants')
